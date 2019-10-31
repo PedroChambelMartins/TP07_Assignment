@@ -7,10 +7,13 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
+
+import java.util.Random;
 
 //TODO
 // Detect a double tap
@@ -36,6 +39,13 @@ public class MainActivity extends AppCompatActivity {
         private Paint paint = new Paint();
         private Path path = new Path();
 
+        int color;
+        private boolean double_tap = false;
+        private long hold_time1;
+        private long hold_time2;
+
+        private long doubletap_time;
+
         public SingleTouchEventView(Context context, AttributeSet attrs) {
             super(context, attrs);
 
@@ -50,6 +60,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onDraw(Canvas canvas) {
             canvas.drawPath(path, paint);// draws the path with the paint
+
         }
 
         @Override
@@ -64,11 +75,32 @@ public class MainActivity extends AppCompatActivity {
             switch (event.getAction()) {
                 case MotionEvent.ACTION_DOWN:
                     path.moveTo(eventX, eventY);// updates the path initial point
+
+                    hold_time1 = System.currentTimeMillis();
+
+                    if(double_tap && (System.currentTimeMillis() - doubletap_time) <= 300) {
+                        paint.setColor(color);
+                        double_tap = false;
+                    }
+                    else {
+                        double_tap = true;
+                        doubletap_time = System.currentTimeMillis();
+                    }
+
                     return true;
                 case MotionEvent.ACTION_MOVE:
                     path.lineTo(eventX, eventY);// makes a line to the point each time this event is fired
                     break;
                 case MotionEvent.ACTION_UP:// when you lift your finger
+
+                    hold_time2 = System.currentTimeMillis();
+
+                    if(hold_time2 - hold_time1 >= 1000) {
+                        Random random = new Random();
+                        color = Color.argb(255, random.nextInt(256), random.nextInt(256), random.nextInt(256));
+
+                        getRootView().setBackgroundColor(color);
+                    }
 
                     performClick();
                     break;
